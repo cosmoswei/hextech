@@ -27,6 +27,9 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         }
         // 更新节点
         serviceNodes.put(service, palmxSocketAddresses);
+
+        // 更新完成，置为 false
+        needRefresh.put(service, false);
     }
 
     public synchronized void notifyRefresh(String serviceName) {

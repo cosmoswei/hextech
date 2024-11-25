@@ -13,11 +13,6 @@ import java.util.List;
  */
 public class WeightRoundRobinLoadBalance extends AbstractLoadBalance {
 
-    private static final Logger log = LoggerFactory.getLogger(WeightRoundRobinLoadBalance.class);
-
-
-    int s = 1;
-
     @Override
     protected PalmxSocketAddress doChoose(List<PalmxSocketAddress> socketAddressList, String serviceName) {
 

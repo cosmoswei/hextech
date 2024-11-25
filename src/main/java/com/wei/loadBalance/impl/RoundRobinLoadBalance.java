@@ -19,7 +19,6 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         if (!positions.containsKey(serviceName)) {
             positions.put(serviceName, new AtomicInteger((new Random()).nextInt(1000)));
         }
-
         AtomicInteger position = positions.get(serviceName);
         int pos = Math.abs(position.incrementAndGet());
         return socketAddressList.get(pos % socketAddressList.size());
