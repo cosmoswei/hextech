@@ -3,8 +3,6 @@ package com.wei.loadBalance.impl;
 import com.google.common.collect.Lists;
 import com.wei.loadBalance.AbstractLoadBalance;
 import com.wei.loadBalance.PalmxSocketAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -14,13 +12,10 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
-    private static final Logger log = LoggerFactory.getLogger(ConsistentHashLoadBalance.class);
     private final ConcurrentHashMap<String, ConsistentHashSelector> selectors = new ConcurrentHashMap<>();
 
     @Override
@@ -38,41 +33,6 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         }
         String selectAddressStr = selector.select(serviceName);
         return serviceAddressesMap.get(selectAddressStr);
-    }
-
-    public static PalmxSocketAddress parseStringToServer(String input) {
-
-        // 使用正则匹配键值对
-        Pattern pattern = Pattern.compile("(\\w+)='?(.*?)'?([,}])");
-        Matcher matcher = pattern.matcher(input);
-        String addr = "";
-        int port = 0;
-        int weight = 0;
-        int effectiveWeight = 0;
-        int currentWeight = 0;
-        while (matcher.find()) {
-            String key = matcher.group(1);  // 键
-            String value = matcher.group(2); // 值
-            // 根据键值设置对象属性
-            switch (key) {
-                case "ip":
-                    addr = value;
-                    break;
-                case "weight":
-                    weight = Integer.parseInt(value);
-                    break;
-                case "effectiveWeight":
-                    effectiveWeight = Integer.parseInt(value);
-                    break;
-                case "currentWeight":
-                    currentWeight = Integer.parseInt(value);
-                    break;
-            }
-        }
-        PalmxSocketAddress server = new PalmxSocketAddress(addr, port, weight);
-        server.setCurrentWeight(currentWeight);
-        server.setCurrentWeight(effectiveWeight);
-        return server;
     }
 
     static class ConsistentHashSelector {
