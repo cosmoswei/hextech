@@ -22,17 +22,6 @@ public class PalmxSocketAddress extends InetSocketAddress implements Comparable<
         this.effectiveWeight = weight;
     }
 
-    public PalmxSocketAddress(InetAddress address,
-                              int port,
-                              int weight,
-                              Integer effectiveWeight,
-                              Integer currentWeight) {
-        super(address.getHostAddress(), port);
-        this.weight = weight;
-        this.currentWeight = currentWeight;
-        this.effectiveWeight = effectiveWeight;
-    }
-
     public PalmxSocketAddress(InetAddress address, int port, int weight, Boolean available) {
         super(address.getHostAddress(), port);
         this.weight = weight;
@@ -77,12 +66,10 @@ public class PalmxSocketAddress extends InetSocketAddress implements Comparable<
         this.isAvailable = isAvailable;
     }
 
-    // 每成功一次，恢复有效权重1，不超过配置的起始权重
     public void onInvokeSuccess() {
         if (effectiveWeight < weight) effectiveWeight++;
     }
 
-    // 每失败一次，有效权重减少1，无底线的减少
     public void onInvokeFault() {
         effectiveWeight--;
     }
