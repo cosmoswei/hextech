@@ -1,9 +1,11 @@
 package com.wei.loadBalance.impl;
 
+import com.google.common.collect.Lists;
 import com.wei.loadBalance.AbstractLoadBalance;
 import com.wei.loadBalance.PalmxSocketAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -11,19 +13,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
+    private static final Logger log = LoggerFactory.getLogger(ConsistentHashLoadBalance.class);
     private final ConcurrentHashMap<String, ConsistentHashSelector> selectors = new ConcurrentHashMap<>();
 
     @Override
     protected PalmxSocketAddress doChoose(List<PalmxSocketAddress> socketAddressList, String serviceName) {
-        List<String> serviceAddresses = socketAddressList.stream().map(InetSocketAddress::toString).collect(Collectors.toList());
-
-        int identityHashCode = System.identityHashCode(socketAddressList);
+        Map<String, PalmxSocketAddress> serviceAddressesMap = socketAddressList.stream()
+                .collect(Collectors.toMap(palmxSocketAddress -> palmxSocketAddress.getAddress().getHostAddress(), Function.identity()));
+        List<String> serviceAddresses = Lists.newArrayList(serviceAddressesMap.keySet());
+        int identityHashCode = System.identityHashCode(serviceAddresses);
         // build rpc service name by rpcRequest
         ConsistentHashSelector selector = selectors.get(serviceName);
         // check for updates
@@ -31,8 +36,9 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
             selectors.put(serviceName, new ConsistentHashSelector(serviceAddresses, 160, identityHashCode));
             selector = selectors.get(serviceName);
         }
-
-        return parseStringToServer(selector.select(serviceName));
+        String selectAddressStr = selector.select(serviceName);
+        log.debug("Select address: {}", selectAddressStr);
+        return serviceAddressesMap.get(selectAddressStr);
     }
 
     public static PalmxSocketAddress parseStringToServer(String input) {
