@@ -37,7 +37,6 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
             selector = selectors.get(serviceName);
         }
         String selectAddressStr = selector.select(serviceName);
-        log.debug("Select address: {}", selectAddressStr);
         return serviceAddressesMap.get(selectAddressStr);
     }
 
