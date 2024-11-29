@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Deprecated
 public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
     private final Map<String, AtomicInteger> positions = new ConcurrentHashMap<>();

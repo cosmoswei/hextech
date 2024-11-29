@@ -6,6 +6,7 @@ import com.wei.loadBalance.PalmxSocketAddress;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Deprecated
 public class RandomLoadBalance extends AbstractLoadBalance {
 
     @Override

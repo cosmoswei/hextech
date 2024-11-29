@@ -12,7 +12,6 @@ import java.util.Random;
 public class WeightRandomLoadBalance extends AbstractLoadBalance {
 
     private final Random random;
-    int totalWeight;
 
     public WeightRandomLoadBalance() {
         this.random = new Random();
