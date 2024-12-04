@@ -12,12 +12,4 @@ class BenchmarkGroupResult {
         this.requestCount = requestCount;
         this.result = result;
     }
-
-    public int getRequestCount() {
-        return requestCount;
-    }
-
-    public BenchmarkResult getResult() {
-        return result;
-    }
 }
