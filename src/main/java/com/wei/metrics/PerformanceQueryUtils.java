@@ -33,9 +33,9 @@ public class PerformanceQueryUtils {
     private static final Logger log = LoggerFactory.getLogger(PerformanceQueryUtils.class);
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private static final SystemInfo SI = new SystemInfo();
-    private static HardwareAbstractionLayer HAL = SI.getHardware();
+    private static final HardwareAbstractionLayer HAL = SI.getHardware();
     private static final OperatingSystem OS = SI.getOperatingSystem();
-    private final MeterRegistry REGISTRY;
+    private static final MeterRegistry REGISTRY = MetricRegistryProvider.getRegistry();
     private static final int MINUTE = 1000 * 60;
     private static final int MB = 1024 * 1024;
 
@@ -50,18 +50,17 @@ public class PerformanceQueryUtils {
     /**
      * GC 计时 Map <time,avgLatency>
      */
-    Map<Long, Long> gcTimeMap = new ConcurrentHashMap<>();
+    static Map<Long, Long> gcTimeMap = new ConcurrentHashMap<>();
     /**
      * CPU 使用率计时 Map <time,CpuUsage>
      */
-    Map<Long, CpuUsage> cpuTimeMap = new ConcurrentHashMap<>();
+    static Map<Long, CpuUsage> cpuTimeMap = new ConcurrentHashMap<>();
     /**
      * IOPS 计时 Map <time,iops>
      */
-    Map<Long, Long> iopsMap = new HashMap<>();
+    static Map<Long, Long> iopsMap = new HashMap<>();
 
-    private PerformanceQueryUtils() {
-        this.REGISTRY = MetricRegistryProvider.getRegistry();
+    public static void init() {
         new ClassLoaderMetrics().bindTo(REGISTRY);
         new JvmMemoryMetrics().bindTo(REGISTRY);
         new JvmGcMetrics().bindTo(REGISTRY);
@@ -111,7 +110,7 @@ public class PerformanceQueryUtils {
         EXECUTOR_SERVICE.shutdownNow();
     }
 
-    public Metrics getMetrics() {
+    public static Metrics getMetrics() {
         Metrics metrics = new Metrics();
         metrics.setSystemMetrics(getSystemMetrics());
         metrics.setGcMetrics(getGcMetrics());
@@ -120,7 +119,7 @@ public class PerformanceQueryUtils {
         return metrics;
     }
 
-    public SystemMetrics getSystemMetrics() {
+    public static SystemMetrics getSystemMetrics() {
         SystemMetrics systemMetrics = new SystemMetrics();
         CentralProcessor processor = HAL.getProcessor();
 
@@ -156,7 +155,7 @@ public class PerformanceQueryUtils {
         return systemMetrics;
     }
 
-    private CpuUsage getCpuUsage() {
+    private static CpuUsage getCpuUsage() {
         long now = System.currentTimeMillis();
         // 1s 之前的不要
         cpuTimeMap.entrySet().removeIf((k) -> k.getKey() < now - 1000);
@@ -165,7 +164,7 @@ public class PerformanceQueryUtils {
                 .map(Map.Entry::getValue).orElse(null);
     }
 
-    private Long getIops1s() {
+    private static Long getIops1s() {
         long now = System.currentTimeMillis();
         // 1s 之前的不要
         iopsMap.entrySet().removeIf((k) -> k.getKey() < now - 1000);
@@ -175,7 +174,7 @@ public class PerformanceQueryUtils {
     }
 
 
-    private CpuUsage getCpuUsage(CentralProcessor processor) {
+    private static CpuUsage getCpuUsage(CentralProcessor processor) {
         long[] prevTicks = processor.getSystemCpuLoadTicks();
         // Wait a second
         Util.sleep(1000);
@@ -196,7 +195,7 @@ public class PerformanceQueryUtils {
         return cpuUsage;
     }
 
-    private long getIops() {
+    private static long getIops() {
         Map<String, Map<String, Long>> IOPSMap = new ConcurrentHashMap<>();
         for (HWDiskStore hwDiskStore : HAL.getDiskStores()) {
             String name = hwDiskStore.getName();
@@ -231,7 +230,7 @@ public class PerformanceQueryUtils {
         return iops;
     }
 
-    public NetworkMetrics getNetworkMetrics() {
+    public static NetworkMetrics getNetworkMetrics() {
         NetworkMetrics networkMetrics = new NetworkMetrics();
         networkMetrics.setLatency(0.0D);
         networkMetrics.setBandwidth(0.0D);
@@ -243,36 +242,25 @@ public class PerformanceQueryUtils {
                     || net.getIPv6addr().length == 0) {
                 continue;
             }
-            long mtu = net.getMTU();
-            long speed = net.getSpeed();
-            String macAddr = net.getMacaddr();
-            String[] iPv4Addr = net.getIPv4addr();
-            String[] iPv6Addr = net.getIPv6addr();
+            networkMetrics.setMtu(net.getMTU());
+            networkMetrics.setSpeed(net.getSpeed());
+            networkMetrics.setMacaddr(net.getMacaddr());
+            networkMetrics.setIPv4addr(net.getIPv4addr());
+            networkMetrics.setIPv6addr(net.getIPv6addr());
             boolean hasData = net.getBytesRecv() > 0 || net.getBytesSent() > 0 || net.getPacketsRecv() > 0
                     || net.getPacketsSent() > 0;
-            long packetsRecv = net.getPacketsRecv();
-            long bytesRecv = net.getBytesRecv();
-            long inErrors = net.getInErrors();
-            long outErrors = net.getOutErrors();
-            long bytesSent = net.getBytesSent();
-            long packetsSent = net.getPacketsSent();
-            networkMetrics.setMtu(mtu);
-            networkMetrics.setSpeed(speed);
-            networkMetrics.setMacaddr(macAddr);
-            networkMetrics.setIPv4addr(iPv4Addr);
-            networkMetrics.setIPv6addr(iPv6Addr);
             networkMetrics.setHasData(hasData);
-            networkMetrics.setBytesRecv(bytesRecv);
-            networkMetrics.setBytesSent(bytesSent);
-            networkMetrics.setPacketsRecv(packetsRecv);
-            networkMetrics.setPacketsSent(packetsSent);
-            networkMetrics.setInErrors(inErrors);
-            networkMetrics.setOutErrors(outErrors);
+            networkMetrics.setBytesRecv(net.getBytesRecv());
+            networkMetrics.setBytesSent(net.getBytesSent());
+            networkMetrics.setPacketsRecv(net.getPacketsRecv());
+            networkMetrics.setPacketsSent(net.getPacketsSent());
+            networkMetrics.setInErrors(net.getInErrors());
+            networkMetrics.setOutErrors(net.getOutErrors());
         }
         return networkMetrics;
     }
 
-    public GcMetrics getGcMetrics() {
+    public static GcMetrics getGcMetrics() {
         GcMetrics gcMetrics = new GcMetrics();
         gcMetrics.setGcPauseTime1m(NumberTool.round(getGcPauseTime1m(), 2));
         gcMetrics.setGcThroughput1m(NumberTool.round(getGcThroughput1m(), 2));
@@ -283,36 +271,7 @@ public class PerformanceQueryUtils {
         return gcMetrics;
     }
 
-    private double getGcPauseTime1m() {
-        long now = System.currentTimeMillis();
-        gcTimeMap.entrySet().removeIf((k) -> k.getKey() < now - MINUTE);
-        // 去掉一分钟以前的
-        gcCount = gcTimeMap.size();
-        OptionalDouble average = gcTimeMap.values().stream().mapToLong(l -> l).average();
-        return average.orElse(0.0D);
-    }
-
-    private double getGcThroughput1m() {
-        long now = System.currentTimeMillis();
-        // 去掉一分钟以前的
-        gcTimeMap.entrySet().removeIf((k) -> k.getKey() < now - MINUTE);
-        gcCount = gcTimeMap.size();
-        long sum = gcTimeMap.values().stream().mapToLong(l -> l).sum();
-        return NumberTool.div(60 * 1000 - sum, 60 * 1000, 4) * 100;
-    }
-
-
-    private double getAllocationRate(MeterRegistry registry) {
-        double memoryAllocated = registry.get("jvm.gc.memory.allocated").counter().count();
-        return memoryAllocated / 1024 / 1024;
-    }
-
-    private double getPromotedRate(MeterRegistry registry) {
-        double memoryPromoted = registry.get("jvm.gc.memory.promoted").counter().count();
-        return memoryPromoted / 1024 / 1024;
-    }
-
-    public ThreadMetrics getThreadMetrics() {
+    public static ThreadMetrics getThreadMetrics() {
         ThreadMetrics threadMetrics = new ThreadMetrics();
         double liveThreads = REGISTRY.get("jvm.threads.live").gauge().value();
         threadMetrics.setLiveThreads(liveThreads);
@@ -331,5 +290,34 @@ public class PerformanceQueryUtils {
         double waitingThreads = REGISTRY.get("jvm.threads.states").tag("state", "waiting").gauge().value();
         threadMetrics.setWaitingThreads(waitingThreads);
         return threadMetrics;
+    }
+
+    private static double getGcPauseTime1m() {
+        long now = System.currentTimeMillis();
+        gcTimeMap.entrySet().removeIf((k) -> k.getKey() < now - MINUTE);
+        // 去掉一分钟以前的
+        gcCount = gcTimeMap.size();
+        OptionalDouble average = gcTimeMap.values().stream().mapToLong(l -> l).average();
+        return average.orElse(0.0D);
+    }
+
+    private static double getGcThroughput1m() {
+        long now = System.currentTimeMillis();
+        // 去掉一分钟以前的
+        gcTimeMap.entrySet().removeIf((k) -> k.getKey() < now - MINUTE);
+        gcCount = gcTimeMap.size();
+        long sum = gcTimeMap.values().stream().mapToLong(l -> l).sum();
+        return NumberTool.div(60 * 1000 - sum, 60 * 1000, 4) * 100;
+    }
+
+
+    private static double getAllocationRate(MeterRegistry registry) {
+        double memoryAllocated = registry.get("jvm.gc.memory.allocated").counter().count();
+        return memoryAllocated / 1024 / 1024;
+    }
+
+    private static double getPromotedRate(MeterRegistry registry) {
+        double memoryPromoted = registry.get("jvm.gc.memory.promoted").counter().count();
+        return memoryPromoted / 1024 / 1024;
     }
 }

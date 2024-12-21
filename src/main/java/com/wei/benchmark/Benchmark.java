@@ -13,6 +13,7 @@ public class Benchmark {
         List<BenchmarkGroupResult> groupResults = new ArrayList<>();
         for (int requestCount : loopCounts) {
             try {
+                Thread.sleep(20);
                 System.out.println("Running benchmark for " + requestCount + " requests...");
                 BenchmarkConfig config = new BenchmarkConfig(threadCount, requestCount, TaskType.LOCAL);
                 task.execute();
