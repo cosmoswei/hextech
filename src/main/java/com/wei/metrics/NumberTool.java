@@ -13,7 +13,6 @@ public class NumberTool {
 
     // 这个类不能实例化
     private NumberTool() {
-
     }
 
     /**

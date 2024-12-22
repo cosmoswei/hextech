@@ -173,7 +173,6 @@ public class PerformanceQueryUtils {
                 .map(Map.Entry::getValue).orElse(0L);
     }
 
-
     private static CpuUsage getCpuUsage(CentralProcessor processor) {
         long[] prevTicks = processor.getSystemCpuLoadTicks();
         // Wait a second
