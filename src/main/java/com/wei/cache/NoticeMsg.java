@@ -1,4 +1,8 @@
 package com.wei.cache;
 
-public interface NoticeMsg {
+import lombok.Data;
+
+@Data
+public class NoticeMsg {
+    private String key;
 }
