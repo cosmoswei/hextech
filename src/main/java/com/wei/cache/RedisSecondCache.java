@@ -1,6 +1,7 @@
 package com.wei.cache;
 
-public class LocalCache implements Cache{
+
+public class RedisSecondCache implements SecondCache {
 
 
     @Override
@@ -14,7 +15,7 @@ public class LocalCache implements Cache{
     }
 
     @Override
-    public void remove(String key) {
+    public void delete(String key) {
 
     }
 }
