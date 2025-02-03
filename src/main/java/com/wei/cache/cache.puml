@@ -1,0 +1,46 @@
+@startuml
+autonumber
+actor       Actor       as Actor
+participant ServiceA as ServiceA
+participant ServiceB as ServiceB
+participant Frame as Frame
+control     Retry     as Retry
+collections LocalCache as LocalCache
+entity      Redis      as Redis
+database    Database    as Database
+queue       Queue       as Broker
+
+Actor -> ServiceA : update 请求
+ServiceA -> Frame : update 请求
+Frame -> LocalCache : 删除本地缓存
+LocalCache-> Frame: ack
+Frame -> Redis : 删除分布式缓存
+Redis -> Frame: ack
+Frame -> Database : 更新数据
+Database -> Frame: ack
+
+Frame --> Broker : 广播发送删除本地缓存消息
+
+Frame --> Broker : 发送删除分布式缓存消息
+Frame -> ServiceA: 返回
+ServiceA -> ServiceB : Invoke
+ServiceB -> ServiceA: return
+ServiceA->Actor: 返回
+==MQ==
+Broker -> Frame: push 消息
+Frame -> Frame: sleep 1 秒
+alt 本地缓存消息
+Frame -> LocalCache: 删除本地缓存
+alt 成功？
+Frame -> Frame: 返回
+else 失败
+Frame -> Retry: 内存重试
+end
+else 分布式缓存消息
+alt 成功？
+Frame -> Frame: 返回
+else 失败
+Frame -> Broker: MQ 重试
+end
+end
+@enduml
