@@ -1,4 +1,4 @@
-package com.wei.cache.cache1;
+package com.wei.cache;
 
 import com.wei.MyUser;
 

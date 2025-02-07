@@ -1,8 +1,7 @@
-package com.wei.cache.cache1;
+package com.wei.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.wei.cache.NoticeMsg;
 import com.wei.json.JsonUtil;
 import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
@@ -63,7 +62,7 @@ public class CacheManager {
     }
 
     public void listenInvalidMessageHandler(NoticeMsg msg) {
-
+        handlerListenerInvalidMsg(msg);
     }
 
 

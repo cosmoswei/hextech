@@ -1,10 +1,10 @@
-package com.wei.cache.cache1;
+package com.wei.cache;
 
 import com.wei.MockService;
 import com.wei.MyUser;
 import org.redisson.api.RedissonClient;
 
-public class Main {
+public class CacheTest {
     public static void main(String[] args) {
         RedissonClient redissonClient = RedissonFactory.create();
         CacheManager cacheManager = new CacheManager(redissonClient);
