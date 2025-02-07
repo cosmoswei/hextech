@@ -2,6 +2,7 @@ package com.wei.cache.cache1;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.wei.cache.NoticeMsg;
 import com.wei.json.JsonUtil;
 import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
@@ -27,12 +28,12 @@ public class CacheManager {
     }
 
     public <T> T get(String key, Class<T> type, Supplier<T> dbLoader) {
-        // 1️⃣ 先查本地缓存
+        // 先查本地缓存
         T value = (T) localCache.getIfPresent(key);
         if (value != null) return value;
 
         log.info("本地缓存未命中！");
-        // 2️⃣ 本地缓存未命中，查 Redis
+        // 本地缓存未命中，查 Redis
         String redisValue = redisCache.get(key);
         if (redisValue != null) {
             log.info("Redis命中！");
@@ -41,7 +42,7 @@ public class CacheManager {
             return value;
         }
 
-        // 3️⃣ Redis 也未命中，查数据库
+        // Redis 也未命中，查数据库
         log.info("Redis 也未命中！");
         value = dbLoader.get();
         if (value != null) {
@@ -59,5 +60,30 @@ public class CacheManager {
     public void delete(String key) {
         redisCache.remove(key);
         localCache.invalidate(key);
+    }
+
+    public void listenInvalidMessageHandler(NoticeMsg msg) {
+
+    }
+
+
+    /**
+     * 处理监听失效的消息
+     */
+    private boolean handlerListenerInvalidMsg(NoticeMsg msg) {
+        try {
+            delete(msg.getKey());
+            return true;
+        } catch (Exception e) {
+            log.info("delete {} err msg = {}", msg.getKey(), e.getMessage());
+        }
+        return false;
+    }
+
+
+    public void sendInvalidMsg(String key) {
+        // 广播发送一个失效的消息
+        NoticeMsg noticeMsg = new NoticeMsg();
+        noticeMsg.setKey(key);
     }
 }
