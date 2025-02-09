@@ -16,7 +16,7 @@ public class CacheManager {
     private static final Logger log = LoggerFactory.getLogger(CacheManager.class);
     private final Cache<String, Object> localCache;
     private final RMapCache<String, String> redisCache;
-    private final Duration redisTtl = Duration.ofMinutes(30); // Redis 缓存时间
+    private final Duration redisTtl = Duration.ofMinutes(30);
 
     public CacheManager(RedissonClient redissonClient) {
         this.redisCache = redissonClient.getMapCache("my-cache");
@@ -31,11 +31,11 @@ public class CacheManager {
         T value = (T) localCache.getIfPresent(key);
         if (value != null) return value;
 
-        log.info("本地缓存未命中！");
+        log.info("本地缓存 未命中！");
         // 本地缓存未命中，查 Redis
         String redisValue = redisCache.get(key);
         if (redisValue != null) {
-            log.info("Redis命中！");
+            log.info("Redis 命中！");
             value = JsonUtil.fromJson(redisValue, type);
             localCache.put(key, value);
             return value;
@@ -62,7 +62,7 @@ public class CacheManager {
     }
 
     public void listenInvalidMessageHandler(NoticeMsg msg) {
-        handlerListenerInvalidMsg(msg);
+        boolean b = handlerListenerInvalidMsg(msg);
     }
 
 

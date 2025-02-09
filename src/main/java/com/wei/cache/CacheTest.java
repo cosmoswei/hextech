@@ -15,8 +15,8 @@ public class CacheTest {
 
         System.out.println("User: " + user);
         // 更新用户
-//        user.setName("New Name");
-//        userService.updateUser(user);
+        user.setName("New Name");
+        userService.updateUser(user);
 
         // 再次查询，确保数据被更新
         MyUser updatedUser = userService.getUserById(123L);
