@@ -1,4 +1,4 @@
-package com.wei.cache;
+package com.wei.completableCache;
 
 public class RedisSecondCache implements SecondCache {
 

@@ -1,11 +1,12 @@
-package com.wei.cache;
+package com.wei.completableCache;
 
-public class CacheCore {
+public class CompletableCache {
 
     private FirstCache firstCache;
     private SecondCache secondCache;
 
-    public CacheCore(FirstCache firstCache, SecondCache secondCache) {
+    public CompletableCache(FirstCache firstCache, SecondCache secondCache) {
+
         this.firstCache = firstCache;
         this.secondCache = secondCache;
 

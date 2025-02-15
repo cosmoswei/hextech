@@ -1,4 +1,4 @@
-package com.wei.cache;
+package com.wei.completableCache;
 
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;

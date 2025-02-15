@@ -1,6 +1,6 @@
-package com.wei.cache;
+package com.wei.completableCache;
 
-public interface FirstCache {
+public interface SecondCache {
     void put(String key, Object object);
 
     Object get(String key);
