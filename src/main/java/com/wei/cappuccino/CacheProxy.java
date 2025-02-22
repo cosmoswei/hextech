@@ -1,4 +1,4 @@
-package com.wei.deepseek;
+package com.wei.cappuccino;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -27,7 +27,7 @@ public class CacheProxy implements java.lang.reflect.InvocationHandler {
 
         String key = generateKey(annotation.keyPattern(), method, args);
         Cache cache = CacheManager.getCache(annotation.cacheName());
-        
+
         return cache.get(key, () -> {
             try {
                 return method.invoke(target, args);

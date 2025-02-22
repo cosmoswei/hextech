@@ -9,10 +9,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class CacheManager {
+
+    private static final Map<String, com.wei.cappuccino.Cache> caches = new ConcurrentHashMap<>();
+
+    public static com.wei.cappuccino.Cache getCache(String name) {
+        return caches.computeIfAbsent(name, s -> null);
+    }
+
     private static final Logger log = LoggerFactory.getLogger(CacheManager.class);
     private final Cache<String, Object> localCache;
     private final RMapCache<String, String> redisCache;

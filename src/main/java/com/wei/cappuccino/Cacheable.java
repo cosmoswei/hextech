@@ -1,4 +1,4 @@
-package com.wei.deepseek;
+package com.wei.cappuccino;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

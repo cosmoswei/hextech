@@ -1,4 +1,4 @@
-package com.wei.deepseek;
+package com.wei.cappuccino;
 
 import java.util.function.Supplier;
 

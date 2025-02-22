@@ -1,6 +1,4 @@
-package com.wei.deepseek;
-
-import com.wei.MyUser;
+package com.wei.cappuccino;
 
 import java.util.Arrays;
 import java.util.function.Function;
