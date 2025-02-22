@@ -1,7 +1,5 @@
 package com.wei;
 
-import lombok.Data;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,8 +37,6 @@ public class MockService {
         myUserMap.remove(id);
         safeSleep(5);
     }
-
-
 
 
     private static void safeSleep(long millis) {

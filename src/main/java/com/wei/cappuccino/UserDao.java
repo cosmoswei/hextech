@@ -1,4 +1,4 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
 import com.wei.MyUser;
 

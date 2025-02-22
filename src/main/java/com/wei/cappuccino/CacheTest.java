@@ -1,4 +1,4 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
 import com.wei.MockService;
 import com.wei.MyUser;
@@ -7,9 +7,9 @@ import org.redisson.api.RedissonClient;
 public class CacheTest {
     public static void main(String[] args) {
         RedissonClient redissonClient = RedissonFactory.create();
-        CompletableCacheManager completableCacheManager = new CompletableCacheManager(redissonClient);
+        CacheManager cacheManager = new CacheManager(redissonClient);
         UserDao userDao = new UserDao(); // 假设是数据库访问类
-        UserService userService = new UserService(completableCacheManager, userDao);
+        UserService userService = new UserService(cacheManager, userDao);
         // 查询用户
         MyUser user = MockService.getUser(123L);
 

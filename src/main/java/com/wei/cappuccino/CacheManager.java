@@ -1,4 +1,4 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -12,13 +12,13 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class CompletableCacheManager {
-    private static final Logger log = LoggerFactory.getLogger(CompletableCacheManager.class);
+public class CacheManager {
+    private static final Logger log = LoggerFactory.getLogger(CacheManager.class);
     private final Cache<String, Object> localCache;
     private final RMapCache<String, String> redisCache;
     private final Duration redisTtl = Duration.ofMinutes(30);
 
-    public CompletableCacheManager(RedissonClient redissonClient) {
+    public CacheManager(RedissonClient redissonClient) {
         this.redisCache = redissonClient.getMapCache("my-cache");
         this.localCache = Caffeine.newBuilder()
                 .maximumSize(1000)

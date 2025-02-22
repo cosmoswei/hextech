@@ -1,4 +1,4 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -7,13 +7,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public class LocalFirstCache implements FirstCache {
+public class LocalCacheBase implements CacheBase {
 
     private static final Cache<String, Object> LOCAL_CACHE = Caffeine.newBuilder()
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .maximumSize(1000)
             .build();
-    private static final Logger log = LoggerFactory.getLogger(LocalFirstCache.class);
+    private static final Logger log = LoggerFactory.getLogger(LocalCacheBase.class);
 
     @Override
     public void put(String key, Object object) {

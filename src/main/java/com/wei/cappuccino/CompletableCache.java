@@ -1,11 +1,11 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
 public class CompletableCache {
 
-    private FirstCache firstCache;
-    private SecondCache secondCache;
+    private CacheBase firstCache;
+    private CacheBase secondCache;
 
-    public CompletableCache(FirstCache firstCache, SecondCache secondCache) {
+    public CompletableCache(CacheBase firstCache, CacheBase secondCache) {
 
         this.firstCache = firstCache;
         this.secondCache = secondCache;

@@ -1,6 +1,6 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
-public interface FirstCache {
+public interface CacheBase {
     void put(String key, Object object);
 
     Object get(String key);

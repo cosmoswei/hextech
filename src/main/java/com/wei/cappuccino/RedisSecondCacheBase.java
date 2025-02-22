@@ -1,6 +1,6 @@
-package com.wei.completableCache;
+package com.wei.cappuccino;
 
-public class RedisSecondCache implements SecondCache {
+public class RedisSecondCacheBase implements CacheBase {
 
     @Override
     public void put(String key, Object object) {
