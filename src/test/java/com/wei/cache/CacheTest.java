@@ -1,16 +1,20 @@
-package com.wei.cappuccino;
+package com.wei.cache;
 
 import com.wei.MockService;
 import com.wei.MyUser;
-import org.redisson.api.RedissonClient;
+import com.wei.cappuccino.CacheManager;
+import com.wei.cappuccino.facade.CappuccinoConfig;
+import com.wei.cappuccino.facade.CappuccinoFactory;
 
 public class CacheTest {
     public static void main(String[] args) {
-        RedissonClient redissonClient = RedissonFactory.create();
-
-        CacheBase l1Cache = new CaffeineCache();
-        CacheBase l2Cache = new RedisCache();
-        CacheManager cacheManager = new CacheManager(l1Cache, l2Cache);
+        CappuccinoConfig cappuccinoConfig = CappuccinoConfig.builder()
+                .caffeineTtl(200L)
+                .caffeineMacSize(200)
+                .redisUri("redis://120.76.41.234:8866")
+                .redisPassword("huangxuwei")
+                .build();
+        CacheManager cacheManager = CappuccinoFactory.newInstance(cappuccinoConfig);
         UserDao userDao = new UserDao(); // 假设是数据库访问类
         UserService userService = new UserService(cacheManager, userDao);
         // 查询用户

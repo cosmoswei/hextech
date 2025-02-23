@@ -1,20 +1,20 @@
 package com.wei.cappuccino;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
-
 public class CaffeineCache implements CacheBase {
 
-    private static final Cache<String, Object> LOCAL_CACHE = Caffeine.newBuilder()
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .maximumSize(1000)
-            .build();
+    MessageNotify messageNotify;
 
-    MessageNotify messageNotify = new RedisStreamNotify();
+    private static Cache<String, Object> LOCAL_CACHE;
+
+    public CaffeineCache(Cache<String, Object> cache, MessageNotify messageNotify) {
+        this.messageNotify = messageNotify;
+        this.LOCAL_CACHE = cache;
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(CaffeineCache.class);
 

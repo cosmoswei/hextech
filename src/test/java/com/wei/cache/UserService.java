@@ -1,6 +1,7 @@
-package com.wei.cappuccino;
+package com.wei.cache;
 
 import com.wei.MyUser;
+import com.wei.cappuccino.CacheManager;
 
 public class UserService {
     private final CacheManager cacheManager;
