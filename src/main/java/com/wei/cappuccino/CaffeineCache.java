@@ -7,13 +7,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public class LocalCacheBase implements CacheBase {
+public class CaffeineCache implements CacheBase {
 
     private static final Cache<String, Object> LOCAL_CACHE = Caffeine.newBuilder()
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .maximumSize(1000)
             .build();
-    private static final Logger log = LoggerFactory.getLogger(LocalCacheBase.class);
+
+    MessageNotify messageNotify = new RedisStreamNotify();
+
+    private static final Logger log = LoggerFactory.getLogger(CaffeineCache.class);
 
     @Override
     public void put(String key, Object object) {
@@ -29,19 +32,16 @@ public class LocalCacheBase implements CacheBase {
     @Override
     public void delete(String key) {
         LOCAL_CACHE.invalidate(key);
-    }
-
-    public void sendInvalidMsg(String key) {
         // 广播发送一个失效的消息
-        NoticeMsg noticeMsg = new NoticeMsg();
-        noticeMsg.setKey(key);
+        NotifyMsg notifyMsg = new NotifyMsg();
+        notifyMsg.setKey(key);
+        messageNotify.broadcast(notifyMsg);
     }
-
 
     /**
      * 处理监听失效的消息
      */
-    private boolean handlerListenerInvalidMsg(NoticeMsg msg) {
+    private boolean listen(NotifyMsg msg) {
         try {
             delete(msg.getKey());
             return true;

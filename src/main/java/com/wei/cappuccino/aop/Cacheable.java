@@ -1,4 +1,4 @@
-package com.wei.cappuccino;
+package com.wei.cappuccino.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

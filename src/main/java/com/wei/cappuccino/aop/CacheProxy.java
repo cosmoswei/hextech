@@ -1,10 +1,11 @@
-package com.wei.cappuccino;
+package com.wei.cappuccino.aop;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
 // AOP处理器
 public class CacheProxy implements java.lang.reflect.InvocationHandler {
+
     private final Object target;
 
     public static <T> T createProxy(T target) {
@@ -26,15 +27,8 @@ public class CacheProxy implements java.lang.reflect.InvocationHandler {
         }
 
         String key = generateKey(annotation.keyPattern(), method, args);
-        Cache cache = CacheManager.getCache(annotation.cacheName());
 
-        return cache.get(key, () -> {
-            try {
-                return method.invoke(target, args);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return null;
     }
 
     private String generateKey(String pattern, Method method, Object[] args) {

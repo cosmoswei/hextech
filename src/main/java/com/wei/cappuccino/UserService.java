@@ -12,7 +12,8 @@ public class UserService {
     }
 
     public MyUser getUserById(Long userId) {
-        return cacheManager.get("user:" + userId, MyUser.class, () -> userDao.findById(userId));
+        return cacheManager.get("user:" + userId, MyUser.class,
+                () -> userDao.findById(userId));
     }
 
     public void updateUser(MyUser user) {
