@@ -6,4 +6,7 @@ public interface CacheBase {
     Object get(String key);
 
     void delete(String key);
+
+    void shutdown();
+
 }

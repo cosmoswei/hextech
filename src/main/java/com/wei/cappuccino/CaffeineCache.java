@@ -6,15 +6,14 @@ import org.slf4j.LoggerFactory;
 
 public class CaffeineCache implements CacheBase {
 
-    MessageNotify messageNotify;
+    private final MessageNotify messageNotify;
 
-    private static Cache<String, Object> LOCAL_CACHE;
+    private final Cache<String, Object> LOCAL_CACHE;
 
     public CaffeineCache(Cache<String, Object> cache, MessageNotify messageNotify) {
         this.messageNotify = messageNotify;
         this.LOCAL_CACHE = cache;
     }
-
 
     private static final Logger log = LoggerFactory.getLogger(CaffeineCache.class);
 
@@ -31,11 +30,17 @@ public class CaffeineCache implements CacheBase {
 
     @Override
     public void delete(String key) {
+        log.info("delete caffeine cache key = {}", key);
         LOCAL_CACHE.invalidate(key);
         // 广播发送一个失效的消息
         NotifyMsg notifyMsg = new NotifyMsg();
         notifyMsg.setKey(key);
         messageNotify.broadcast(notifyMsg);
+    }
+
+    @Override
+    public void shutdown() {
+        LOCAL_CACHE.invalidateAll();
     }
 
     /**

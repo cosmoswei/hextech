@@ -86,6 +86,11 @@
             <artifactId>redisson</artifactId>
             <version>3.21.0</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.109.Final</version>
+        </dependency>
     </dependencies>
 
 </project>

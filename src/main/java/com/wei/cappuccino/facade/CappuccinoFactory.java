@@ -15,21 +15,21 @@ public class CappuccinoFactory {
 
     private static final Logger log = LoggerFactory.getLogger(CappuccinoFactory.class);
 
-    public static CacheManager newInstance(CappuccinoConfig cappuccinoConfig) {
+    public static Cappuccino newInstance(CappuccinoConfig cappuccinoConfig) {
         Cache<String, Object> cache = Caffeine.newBuilder()
                 .expireAfterWrite(cappuccinoConfig.getCaffeineTtl(),
                         TimeUnit.MILLISECONDS)
                 .maximumSize(cappuccinoConfig.getCaffeineMacSize())
                 .build();
-        MessageNotify messageNotify = new RedisStreamNotify();
+        MessageNotify messageNotify = new RedisNotify();
         CacheBase l1Cache = new CaffeineCache(cache, messageNotify);
         Config config = new Config();
         config.useSingleServer().setAddress(cappuccinoConfig.getRedisUri())
                 .setPassword(cappuccinoConfig.getRedisPassword());
         RedissonClient redissonClient = Redisson.create(config);
         CacheBase l2Cache = new RedisCache(redissonClient);
-        CacheManager cacheManager = new CacheManager(l1Cache, l2Cache);
+        Cappuccino cappuccino = new Cappuccino(l1Cache, l2Cache);
         log.debug("new a Cappuccino cache instance, config is {}", cappuccinoConfig);
-        return cacheManager;
+        return cappuccino;
     }
 }
