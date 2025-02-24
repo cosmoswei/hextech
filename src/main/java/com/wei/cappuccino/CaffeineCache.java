@@ -42,17 +42,4 @@ public class CaffeineCache implements CacheBase {
     public void shutdown() {
         LOCAL_CACHE.invalidateAll();
     }
-
-    /**
-     * 处理监听失效的消息
-     */
-    private boolean listen(NotifyMsg msg) {
-        try {
-            delete(msg.getKey());
-            return true;
-        } catch (Exception e) {
-            log.info("delete {} err msg = {}", msg.getKey(), e.getMessage());
-        }
-        return false;
-    }
 }

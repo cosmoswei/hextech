@@ -18,30 +18,7 @@ public class Cappuccino {
 
     private static final Logger log = LoggerFactory.getLogger(Cappuccino.class);
 
-    public <T> T get(String key) {
-        // 先查本地缓存
-        T value = (T) l1Cache.get(key);
-        if (value != null) {
-            log.info("l1 Cache 命中！");
-            return value;
-        }
-        ;
-
-        log.info("l1 Cache 未命中！");
-        // 本地缓存未命中，查 Redis
-        Object l2value = l2Cache.get(key);
-        if (l2value != null) {
-            log.info("l2 Cache 命中！");
-            l1Cache.put(key, l2value);
-            return value;
-        }
-
-        // Redis 也未命中，查数据库
-        log.info("l2 Cache 未命中！");
-        return value;
-    }
-
-    public void fail(String key, Consumer<String> consumer) {
+    public void fail(String key, Consumer<Object> consumer) {
         consumer.accept(key);
         delete(key);
     }
@@ -50,25 +27,25 @@ public class Cappuccino {
         // 先查本地缓存
         T value = (T) l1Cache.get(key);
         if (value != null) {
-            log.info("l1 Cache 命中！");
+            log.info("l1 Cache hit！");
             return value;
         }
-        ;
 
-        log.info("l1 Cache 未命中！");
+        log.info("l1 Cache  not hit！");
         // 本地缓存未命中，查 Redis
-        Object l2value = l2Cache.get(key);
+        T l2value = (T) l2Cache.get(key);
         if (l2value != null) {
-            log.info("l2 Cache 命中！");
+            log.info("l2 Cache hit！");
             l1Cache.put(key, l2value);
-            return value;
+            return l2value;
         }
 
         // Redis 也未命中，查数据库
-        log.info("l2 Cache 未命中！");
+        log.info("l2 Cache  not hit！");
         value = supplier.get();
         if (value != null) {
             put(key, value);
+            return value;
         }
         return value;
     }
