@@ -24,12 +24,15 @@ public class CacheTest {
                 () -> userService.getUserById(finalUserId1));
         System.out.println("Updated User 1: " + myUser);
         // 更新用户
-        cappuccino.fail("user:" + userId, (x) -> userService.updateUser(user));
+        cappuccino.fail("user:" + userId, (z) -> userService.updateUser(user));
         for (int i = 0; i < 4; i++) {
             myUser = cappuccino.get("user:" + userId,
                     () -> userService.getUserById(finalUserId1));
             System.out.println("Updated User 2: " + myUser);
             user.setName("New Name");
+            if (i / 2 == 0) {
+                cappuccino.fail("user:" + userId, (x) -> userService.updateUser(user));
+            }
             MyUser updatedUser = cappuccino.get("user:" + userId,
                     () -> userService.getUserById(finalUserId1));
             System.out.println("Updated User 3: " + updatedUser);

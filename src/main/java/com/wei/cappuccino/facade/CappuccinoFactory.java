@@ -26,7 +26,7 @@ public class CappuccinoFactory {
         Config config = new Config();
         config.useSingleServer().setAddress(cappuccinoConfig.getRedisUri())
                 .setPassword(cappuccinoConfig.getRedisPassword());
-        RedissonClient redissonClient = Redisson.create(config);
+        RedissonClient redissonClient = RedissonHelper.create(config);
         CacheBase l2Cache = new RedisCache(redissonClient);
         Cappuccino cappuccino = new Cappuccino(l1Cache, l2Cache);
         log.debug("new a Cappuccino cache instance, config is {}", cappuccinoConfig);
