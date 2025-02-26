@@ -52,12 +52,11 @@ public class SeqMessageQueue {
 
     }
 
-    public void processPending(String streamKey) {
+    public void processPending(String streamKey, String groupName) {
         // Get the stream object
         RStream<String, String> stream = redissonClient.getStream(streamKey);
 
         // Get the pending messages for a specific consumer group
-        String groupName = "SeqGroup";
         PendingResult pendingResult = stream.getPendingInfo(groupName);
         // Retrieve the lowest and highest message IDs
         StreamMessageId lowestId = pendingResult.getLowestId();
@@ -68,7 +67,8 @@ public class SeqMessageQueue {
         Map<StreamMessageId, Map<String, String>> range = stream.range(lowestId, highestId);
         for (StreamMessageId streamMessageId : range.keySet()) {
             Map<String, String> stringStringMap = range.get(streamMessageId);
-            System.out.println("stringStringMap = " + stringStringMap);
+            logger.info("{} value = {}", streamMessageId, stringStringMap);
+
             acknowledgeEvent(streamKey, groupName, streamMessageId);
         }
     }
@@ -81,11 +81,19 @@ public class SeqMessageQueue {
         SeqMessageQueue queue = new SeqMessageQueue();
         String streamKey = "SeqMessageQueue";
         String streamGroup = "SeqGroup";
+        String streamConsumer = "SeqConsumer";
         queue.createStreamAndConsumerGroup(streamKey, streamGroup);
         queue.startListen(streamKey);
         ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+        map.put("key", "cosmoswei");
+        map.put("id", "18411100111");
+        map.put("age", "25");
         map.put("name", "huangxuwei");
-        queue.processPending(streamKey);
+        map.put("phone", "18175737312");
+        map.put("color", "red");
+        queue.addEventToStream(streamKey, map);
+        queue.readEventsFromStream(streamKey, streamGroup, streamConsumer);
+        queue.processPending(streamKey, streamGroup);
     }
 
     // 创建流和消费者组，如果它们还不存在
@@ -120,6 +128,12 @@ public class SeqMessageQueue {
     public Map<StreamMessageId, Map<String, String>> readEventsFromStream(String streamName, String groupName, String consumerName) {
         try {
             RStream<String, String> stream = redissonClient.getStream(streamName);
+            Map<StreamMessageId, Map<String, String>> map = stream.readGroup(groupName, consumerName, StreamReadGroupArgs.neverDelivered());
+            for (StreamMessageId streamMessageId : map.keySet()) {
+
+                logger.info("streamMessageId = {}, value = {}", streamMessageId, map.get(streamMessageId));
+                acknowledgeEvent(streamName, groupName, streamMessageId);
+            }
             return stream.readGroup(groupName, consumerName, StreamReadGroupArgs.neverDelivered());
         } catch (Exception e) {
             logger.error("Error reading events from stream", e);
