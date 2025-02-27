@@ -12,10 +12,9 @@ public class RedisCache implements CacheBase {
     private final RMapCache<String, Object> redisCache;
     private final RedissonClient client;
 
-
-    public RedisCache(RedissonClient client) {
+    public RedisCache(RedissonClient client, String topic) {
         this.client = client;
-        this.redisCache = client.getMapCache("my-cache");
+        this.redisCache = client.getMapCache(topic);
     }
 
     @Override

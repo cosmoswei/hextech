@@ -10,12 +10,12 @@ public class CaffeineCache implements CacheBase {
 
     private final Cache<String, Object> LOCAL_CACHE;
 
+    private static final Logger log = LoggerFactory.getLogger(CaffeineCache.class);
+
     public CaffeineCache(Cache<String, Object> cache, MessageNotify messageNotify) {
         this.messageNotify = messageNotify;
         this.LOCAL_CACHE = cache;
     }
-
-    private static final Logger log = LoggerFactory.getLogger(CaffeineCache.class);
 
     @Override
     public void put(String key, Object object) {

@@ -13,7 +13,7 @@ public class RedissonHelper {
 
     private static RedissonClient redissonClient;
 
-    public static RedissonClient create(Config config) {
+    public static RedissonClient init(Config config) {
         if (redissonClient == null) {
             redissonClient = Redisson.create(config);
         }

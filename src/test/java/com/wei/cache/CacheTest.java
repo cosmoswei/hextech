@@ -13,6 +13,7 @@ public class CacheTest {
                 .caffeineMacSize(200)
                 .redisUri("redis://120.76.41.234:8866")
                 .redisPassword("huangxuwei")
+                .topic("USER_INFO_CACHE")
                 .build();
         Cappuccino cappuccino = CappuccinoFactory.newInstance(cappuccinoConfig);
         UserService userService = new UserService();
@@ -20,20 +21,20 @@ public class CacheTest {
         long userId = 122222L;
         MyUser user = MockService.getUser(userId);
         Long finalUserId1 = userId;
-        MyUser myUser = cappuccino.get("user:" + userId,
+        MyUser myUser = cappuccino.get(userId + "",
                 () -> userService.getUserById(finalUserId1));
         System.out.println("Updated User 1: " + myUser);
         // 更新用户
         cappuccino.fail("user:" + userId, (z) -> userService.updateUser(user));
         for (int i = 0; i < 4; i++) {
-            myUser = cappuccino.get("user:" + userId,
+            myUser = cappuccino.get(userId + "",
                     () -> userService.getUserById(finalUserId1));
             System.out.println("Updated User 2: " + myUser);
             user.setName("New Name");
             if (i / 2 == 0) {
                 cappuccino.fail("user:" + userId, (x) -> userService.updateUser(user));
             }
-            MyUser updatedUser = cappuccino.get("user:" + userId,
+            MyUser updatedUser = cappuccino.get(userId + "",
                     () -> userService.getUserById(finalUserId1));
             System.out.println("Updated User 3: " + updatedUser);
         }

@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class CappuccinoConfig {
+    private String topic;
     private Long caffeineTtl;
     private Integer caffeineMacSize;
     private String redisUri;

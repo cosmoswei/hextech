@@ -50,12 +50,12 @@ public class Cappuccino {
         return value;
     }
 
-    public void put(String key, Object value) {
+    private void put(String key, Object value) {
         l1Cache.put(key, value);
         l2Cache.put(key, value);
     }
 
-    public void delete(String key) {
+    private void delete(String key) {
         l1Cache.delete(key);
         l2Cache.delete(key);
     }
@@ -78,6 +78,5 @@ public class Cappuccino {
         l1Cache.shutdown();
         l2Cache.shutdown();
     }
-
 
 }
