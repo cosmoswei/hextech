@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class SeqMessageQueue {
 
@@ -25,9 +23,6 @@ public class SeqMessageQueue {
 
     private static RedissonClient redissonClient;
 
-    private static final ExecutorService MQ_CONSUMER_POOL = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
-    private boolean listenStop = false;
 
     public void processPending(String streamKey, String groupName) {
         // Get the stream object
@@ -76,8 +71,6 @@ public class SeqMessageQueue {
             queue.acknowledgeEvent(streamKey, streamGroup, streamMessageId);
         }
         queue.processPending(streamKey, streamGroup);
-
-        MQ_CONSUMER_POOL.execute(() -> queue.listen(streamKey, streamGroup, streamConsumer));
 
         Thread.sleep(60 * 1000);
 
@@ -134,27 +127,6 @@ public class SeqMessageQueue {
         }
     }
 
-    public void listen(String streamName, String groupName, String consumerName) {
-
-        log.info("start listen stream message");
-        while (!listenStop) {
-            Map<StreamMessageId, Map<String, String>> streamMessageIdMapMap = readEventsFromStreamTtl(streamName, groupName, consumerName, Duration.ofSeconds(5));
-            for (StreamMessageId streamMessageId : streamMessageIdMapMap.keySet()) {
-                Map<String, String> stringMap = streamMessageIdMapMap.get(streamMessageId);
-                if (stringMap == null) {
-                    continue;
-                }
-                handlerListen(streamName, groupName, streamMessageId, stringMap);
-            }
-        }
-    }
-
-    public void handlerListen(String streamName, String groupName,
-                              StreamMessageId messageId, Map<String, String> data) {
-        System.out.println("data = " + data);
-        acknowledgeEvent(streamName, groupName, messageId);
-    }
-
 
     // 确认事件处理完成
     public void acknowledgeEvent(String streamName, String groupName, StreamMessageId messageId) {
@@ -201,9 +173,7 @@ public class SeqMessageQueue {
     }
 
     public void shutdown() {
-        this.listenStop = true;
         redissonClient.shutdown();
-        MQ_CONSUMER_POOL.shutdown();
     }
 
 }

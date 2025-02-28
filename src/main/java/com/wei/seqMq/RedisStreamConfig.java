@@ -44,6 +44,11 @@ public class RedisStreamConfig {
 
         StreamOperations<String, Object, Object> streamOps = stringRedisTemplate.opsForStream();
 
+        // 处理未 Read 消息
+        processReadMessages(streamOps);
+        // 处理 Pending 消息
+        processPendingMessages(streamOps);
+
         //监听容器配置
         StreamMessageListenerContainer.StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainer
                 .StreamMessageListenerContainerOptions
@@ -53,17 +58,14 @@ public class RedisStreamConfig {
         //监听器实现
         MyStreamListener streamListener = new MyStreamListener();
         //创建监听容器
-        StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer = StreamMessageListenerContainer.create(redisConnectionFactory, options);
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer = StreamMessageListenerContainer
+                .create(redisConnectionFactory, options);
         //groupName需要提前创建
         Subscription subscription = listenerContainer.receiveAutoAck(Consumer.from(GROUP_NAME, CONSUMER_NAME),
                 StreamOffset.create(STREAM_NAME, ReadOffset.lastConsumed()),
                 streamListener);
-        listenerContainer.start();
         log.info("------------------------------------------stream监听启动-----------------------------------------------------------");
-        // 处理未 Read 消息
-        processReadMessages(streamOps);
-        // 处理 Pending 消息
-        processPendingMessages(streamOps);
+        listenerContainer.start();
         return subscription;
     }
 
