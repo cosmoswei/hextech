@@ -10,11 +10,13 @@ import java.util.Map;
 public class ListenerTask implements Runnable {
 
     private final ConsumerInfo consumerInfo;
+    private final StreamListener streamListener;
 
     private boolean listenStop = false;
 
-    public ListenerTask(ConsumerInfo consumerInfo) {
+    public ListenerTask(ConsumerInfo consumerInfo, StreamListener streamListener) {
         this.consumerInfo = consumerInfo;
+        this.streamListener = streamListener;
     }
 
     @Override
@@ -23,9 +25,13 @@ public class ListenerTask implements Runnable {
     }
 
     public void listen() {
-        log.info("start listen stream message");
-        while (!listenStop) {
+        log.info("start listen stream message...");
+        while (canLoop()) {
             Map<StreamMessageId, Map<String, String>> streamMessageIdMapMap = readEventsFromStreamTtl(consumerInfo, Duration.ofSeconds(5));
+            log.info("listen msg = {}", streamMessageIdMapMap);
+            if (null == streamMessageIdMapMap) {
+                continue;
+            }
             for (StreamMessageId streamMessageId : streamMessageIdMapMap.keySet()) {
                 Map<String, String> stringMap = streamMessageIdMapMap.get(streamMessageId);
                 if (stringMap == null) {
@@ -36,12 +42,23 @@ public class ListenerTask implements Runnable {
         }
     }
 
+    private boolean canLoop() {
+        return !listenStop;
+    }
+
     private Map<StreamMessageId, Map<String, String>> readEventsFromStreamTtl(ConsumerInfo consumerInfo, Duration duration) {
-        return null;
+        return SeqMessageQueue.readEventsFromStreamTtl(consumerInfo,
+                duration);
     }
 
     public void handlerListen(ConsumerInfo consumerInfo,
                               StreamMessageId messageId, Map<String, String> data) {
-        System.out.println("messageId= " + messageId + ", data = " + data);
+        SeqMessage seqMessage = new SeqMessage();
+        seqMessage.setSeqMessageId(String.valueOf(messageId.getId0()));
+        seqMessage.setSeqMessageData(data);
+        streamListener.onMessage(seqMessage);
+        if (streamListener.autoAck()) {
+            SeqMessageQueue.acknowledgeEvent(consumerInfo.getStreamName(), consumerInfo.getGroupName(), messageId);
+        }
     }
 }

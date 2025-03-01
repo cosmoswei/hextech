@@ -1,5 +1,22 @@
 package com.wei.seqMq;
 
-public interface StreamMessageListenerContainer<SeqMessage> {
-    void register(ConsumerInfo consumerInfo);
+public interface StreamMessageListenerContainer {
+
+    static StreamMessageListenerContainer create() {
+        return new DefaultStreamMessageListenerContainer();
+    }
+
+    void register(ConsumerInfo consumerInfo, StreamListener streamListener);
+
+    void start();
+
+    void receive(ConsumerInfo consumerInfo, StreamListener streamListener, boolean autoAck);
+
+    default void receive(ConsumerInfo consumerInfo, StreamListener streamListener) {
+        this.receive(consumerInfo, streamListener, false);
+    }
+
+    default void receiveAutoAck(ConsumerInfo consumerInfo, StreamListener streamListener, boolean autoAck) {
+        this.receive(consumerInfo, streamListener, autoAck);
+    }
 }

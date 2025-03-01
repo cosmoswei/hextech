@@ -40,7 +40,6 @@ public class SeqMessageQueue {
         for (StreamMessageId streamMessageId : range.keySet()) {
             Map<String, String> stringStringMap = range.get(streamMessageId);
             log.info("{} value = {}", streamMessageId, stringStringMap);
-
             acknowledgeEvent(streamKey, groupName, streamMessageId);
         }
     }
@@ -65,15 +64,23 @@ public class SeqMessageQueue {
         map.put("phone", "18175737312");
         map.put("color", "red");
         StreamMessageId streamId = queue.addEventToStream(streamKey, map);
-        Map<StreamMessageId, Map<String, String>> streamMessageIdMap = queue.readEventsFromStream(streamKey, streamGroup, streamConsumer);
+        ConsumerInfo consumerInfo = new ConsumerInfo();
+        consumerInfo.setStreamName(streamKey);
+        consumerInfo.setGroupName(streamGroup);
+        consumerInfo.setConsumerName(streamConsumer);
+        Map<StreamMessageId, Map<String, String>> streamMessageIdMap = readEventsFromStream(consumerInfo);
         for (StreamMessageId streamMessageId : streamMessageIdMap.keySet()) {
             log.info("streamMessageId = {}, value = {}", streamMessageId, streamMessageIdMap.get(streamMessageId));
-            queue.acknowledgeEvent(streamKey, streamGroup, streamMessageId);
+            acknowledgeEvent(streamKey, streamGroup, streamMessageId);
         }
         queue.processPending(streamKey, streamGroup);
 
-        Thread.sleep(60 * 1000);
+        MyStreamListener streamListener = new MyStreamListener();
 
+        StreamMessageListenerContainer streamMessageListenerContainer = StreamMessageListenerContainer.create();
+        streamMessageListenerContainer.receiveAutoAck(consumerInfo, streamListener, true);
+        streamMessageListenerContainer.start();
+        Thread.sleep(60 * 1000);
         queue.shutdown();
     }
 
@@ -106,21 +113,24 @@ public class SeqMessageQueue {
     }
 
     // 读取事件
-    public Map<StreamMessageId, Map<String, String>> readEventsFromStream(String streamName, String groupName, String consumerName) {
+    public static Map<StreamMessageId, Map<String, String>> readEventsFromStream(ConsumerInfo consumerInfo) {
         try {
-            RStream<String, String> stream = redissonClient.getStream(streamName);
-            return stream.readGroup(groupName, consumerName, StreamReadGroupArgs.neverDelivered());
+            RStream<String, String> stream = redissonClient.getStream(consumerInfo.getStreamName());
+            return stream.readGroup(consumerInfo.getGroupName(),
+                    consumerInfo.getConsumerName(),
+                    StreamReadGroupArgs.neverDelivered());
         } catch (Exception e) {
             log.error("Error reading events from stream", e);
             return null;
         }
     }
 
-    public Map<StreamMessageId, Map<String, String>> readEventsFromStreamTtl(String streamName, String groupName, String consumerName, Duration ttl) {
+    public static Map<StreamMessageId, Map<String, String>> readEventsFromStreamTtl(ConsumerInfo consumerInfo, Duration ttl) {
         try {
-            RStream<String, String> stream = redissonClient.getStream(streamName);
-
-            return stream.readGroup(groupName, consumerName, StreamReadGroupArgs.neverDelivered().timeout(ttl));
+            RStream<String, String> stream = redissonClient.getStream(consumerInfo.getStreamName());
+            return stream.readGroup(consumerInfo.getGroupName(),
+                    consumerInfo.getConsumerName(),
+                    StreamReadGroupArgs.neverDelivered().timeout(ttl));
         } catch (Exception e) {
             log.error("Error reading events from stream", e);
             return null;
@@ -129,8 +139,9 @@ public class SeqMessageQueue {
 
 
     // 确认事件处理完成
-    public void acknowledgeEvent(String streamName, String groupName, StreamMessageId messageId) {
+    public static void acknowledgeEvent(String streamName, String groupName, StreamMessageId messageId) {
         try {
+            log.info("ack message stream = {}, group = {}, id = {}", streamName, groupName, messageId);
             RStream<String, String> stream = redissonClient.getStream(streamName);
             stream.ack(groupName, messageId);
         } catch (Exception e) {
@@ -139,10 +150,10 @@ public class SeqMessageQueue {
     }
 
     // 读取并自动确认事件
-    public Map<StreamMessageId, Map<String, String>> readAndAcknowledgeEventsFromStream(String streamName, String groupName, String consumerName) {
-        Map<StreamMessageId, Map<String, String>> messages = readEventsFromStream(streamName, groupName, consumerName);
+    public Map<StreamMessageId, Map<String, String>> readAndAcknowledgeEventsFromStream(ConsumerInfo consumerInfo) {
+        Map<StreamMessageId, Map<String, String>> messages = readEventsFromStream(consumerInfo);
         if (messages != null) {
-            messages.keySet().forEach(messageId -> acknowledgeEvent(streamName, groupName, messageId));
+            messages.keySet().forEach(messageId -> acknowledgeEvent(consumerInfo.getStreamName(), consumerInfo.getGroupName(), messageId));
         }
         return messages;
     }
