@@ -16,7 +16,7 @@ public interface StreamMessageListenerContainer {
         this.receive(consumerInfo, streamListener, false);
     }
 
-    default void receiveAutoAck(ConsumerInfo consumerInfo, StreamListener streamListener, boolean autoAck) {
-        this.receive(consumerInfo, streamListener, autoAck);
+    default void receiveAutoAck(ConsumerInfo consumerInfo, StreamListener streamListener) {
+        this.receive(consumerInfo, streamListener, true);
     }
 }

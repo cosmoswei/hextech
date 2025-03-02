@@ -27,17 +27,21 @@ public class ListenerTask implements Runnable {
     public void listen() {
         log.info("start listen stream message...");
         while (canLoop()) {
-            Map<StreamMessageId, Map<String, String>> streamMessageIdMapMap = readEventsFromStreamTtl(consumerInfo, Duration.ofSeconds(5));
-            log.info("listen msg = {}", streamMessageIdMapMap);
-            if (null == streamMessageIdMapMap) {
-                continue;
-            }
-            for (StreamMessageId streamMessageId : streamMessageIdMapMap.keySet()) {
-                Map<String, String> stringMap = streamMessageIdMapMap.get(streamMessageId);
-                if (stringMap == null) {
+            try {
+                Map<StreamMessageId, Map<String, String>> streamMessageIdMapMap = readEventsFromStreamTtl(consumerInfo, Duration.ofSeconds(10));
+                log.info("listen msg = {}", streamMessageIdMapMap);
+                if (null == streamMessageIdMapMap) {
                     continue;
                 }
-                handlerListen(consumerInfo, streamMessageId, stringMap);
+                for (StreamMessageId streamMessageId : streamMessageIdMapMap.keySet()) {
+                    Map<String, String> stringMap = streamMessageIdMapMap.get(streamMessageId);
+                    if (stringMap == null) {
+                        continue;
+                    }
+                    handlerListen(consumerInfo, streamMessageId, stringMap);
+                }
+            } catch (Throwable e) {
+                log.error("listen throw exception cause = {}", e.getMessage(), e.getCause());
             }
         }
     }

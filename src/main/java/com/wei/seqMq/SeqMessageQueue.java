@@ -75,10 +75,16 @@ public class SeqMessageQueue {
         }
         queue.processPending(streamKey, streamGroup);
 
-        MyStreamListener streamListener = new MyStreamListener();
 
+        // 创建容器实例
+        StreamMessageListenerContainer container = StreamMessageListenerContainer.create();
+
+        // 自动扫描并注册监听器（指定扫描包路径）
+        StreamConsumerRegistrar.register(container, "com.wei.seqMq");
         StreamMessageListenerContainer streamMessageListenerContainer = StreamMessageListenerContainer.create();
-        streamMessageListenerContainer.receiveAutoAck(consumerInfo, streamListener, true);
+//        MyStreamListener streamListener = new MyStreamListener();
+//        streamListener.setActAck(true);
+//        streamMessageListenerContainer.receiveAutoAck(consumerInfo, streamListener, true);
         streamMessageListenerContainer.start();
         Thread.sleep(60 * 1000);
         queue.shutdown();

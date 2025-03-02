@@ -17,4 +17,11 @@ public class ConsumerInfo {
      */
     private String consumerName;
 
+    public ConsumerInfo(String streamName, String groupName) {
+        this.streamName = streamName;
+        this.groupName = groupName;
+    }
+
+    public ConsumerInfo() {
+    }
 }
