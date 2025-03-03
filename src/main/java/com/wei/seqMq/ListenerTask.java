@@ -28,8 +28,9 @@ public class ListenerTask implements Runnable {
         log.info("start listen stream message...");
         while (canLoop()) {
             try {
+                Thread.sleep(0);
                 Map<StreamMessageId, Map<String, String>> streamMessageIdMapMap = readEventsFromStreamTtl(consumerInfo, Duration.ofSeconds(10));
-                log.info("listen msg = {}", streamMessageIdMapMap);
+                log.debug("listen msg = {}", streamMessageIdMapMap);
                 if (null == streamMessageIdMapMap) {
                     continue;
                 }
@@ -62,7 +63,7 @@ public class ListenerTask implements Runnable {
         seqMessage.setSeqMessageData(data);
         streamListener.onMessage(seqMessage);
         if (streamListener.autoAck()) {
-            SeqMessageQueue.acknowledgeEvent(consumerInfo.getStreamName(), consumerInfo.getGroupName(), messageId);
+            SeqMessageQueue.acknowledgeEvent(consumerInfo, messageId);
         }
     }
 }

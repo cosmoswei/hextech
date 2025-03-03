@@ -24,12 +24,12 @@ public class SeqMessageQueue {
     private static RedissonClient redissonClient;
 
 
-    public void processPending(String streamKey, String groupName) {
+    public void processPending(ConsumerInfo consumerInfo) {
         // Get the stream object
-        RStream<String, String> stream = redissonClient.getStream(streamKey);
+        RStream<String, String> stream = redissonClient.getStream(consumerInfo.getStreamName());
 
         // Get the pending messages for a specific consumer group
-        PendingResult pendingResult = stream.getPendingInfo(groupName);
+        PendingResult pendingResult = stream.getPendingInfo(consumerInfo.getGroupName());
         // Retrieve the lowest and highest message IDs
         StreamMessageId lowestId = pendingResult.getLowestId();
         StreamMessageId highestId = pendingResult.getHighestId();
@@ -40,7 +40,7 @@ public class SeqMessageQueue {
         for (StreamMessageId streamMessageId : range.keySet()) {
             Map<String, String> stringStringMap = range.get(streamMessageId);
             log.info("{} value = {}", streamMessageId, stringStringMap);
-            acknowledgeEvent(streamKey, groupName, streamMessageId);
+            acknowledgeEvent(consumerInfo, streamMessageId);
         }
     }
 
@@ -55,6 +55,10 @@ public class SeqMessageQueue {
         String streamKey = "SeqMessageQueue";
         String streamGroup = "SeqGroup";
         String streamConsumer = "SeqConsumer";
+        ConsumerInfo consumerInfo = new ConsumerInfo();
+        consumerInfo.setStreamName(streamKey);
+        consumerInfo.setGroupName(streamGroup);
+        consumerInfo.setConsumerName(streamConsumer);
         queue.createStreamAndConsumerGroup(streamKey, streamGroup);
         ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
         map.put("key", "cosmoswei");
@@ -64,16 +68,13 @@ public class SeqMessageQueue {
         map.put("phone", "18175737312");
         map.put("color", "red");
         StreamMessageId streamId = queue.addEventToStream(streamKey, map);
-        ConsumerInfo consumerInfo = new ConsumerInfo();
-        consumerInfo.setStreamName(streamKey);
-        consumerInfo.setGroupName(streamGroup);
-        consumerInfo.setConsumerName(streamConsumer);
+
         Map<StreamMessageId, Map<String, String>> streamMessageIdMap = readEventsFromStream(consumerInfo);
         for (StreamMessageId streamMessageId : streamMessageIdMap.keySet()) {
             log.info("streamMessageId = {}, value = {}", streamMessageId, streamMessageIdMap.get(streamMessageId));
-            acknowledgeEvent(streamKey, streamGroup, streamMessageId);
+            acknowledgeEvent(consumerInfo, streamMessageId);
         }
-        queue.processPending(streamKey, streamGroup);
+        queue.processPending(consumerInfo);
 
 
         // 创建容器实例
@@ -141,11 +142,11 @@ public class SeqMessageQueue {
 
 
     // 确认事件处理完成
-    public static void acknowledgeEvent(String streamName, String groupName, StreamMessageId messageId) {
+    public static void acknowledgeEvent(ConsumerInfo consumerInfo, StreamMessageId messageId) {
         try {
-            log.info("ack message stream = {}, group = {}, id = {}", streamName, groupName, messageId);
-            RStream<String, String> stream = redissonClient.getStream(streamName);
-            stream.ack(groupName, messageId);
+            log.debug("ack message stream = {}, group = {}, id = {}", consumerInfo.getStreamName(), consumerInfo.getGroupName(), messageId);
+            RStream<String, String> stream = redissonClient.getStream(consumerInfo.getStreamName());
+            stream.ack(consumerInfo.getGroupName(), messageId);
         } catch (Exception e) {
             log.error("Error acknowledging event", e);
         }
@@ -155,7 +156,7 @@ public class SeqMessageQueue {
     public Map<StreamMessageId, Map<String, String>> readAndAcknowledgeEventsFromStream(ConsumerInfo consumerInfo) {
         Map<StreamMessageId, Map<String, String>> messages = readEventsFromStream(consumerInfo);
         if (messages != null) {
-            messages.keySet().forEach(messageId -> acknowledgeEvent(consumerInfo.getStreamName(), consumerInfo.getGroupName(), messageId));
+            messages.keySet().forEach(messageId -> acknowledgeEvent(consumerInfo, messageId));
         }
         return messages;
     }
