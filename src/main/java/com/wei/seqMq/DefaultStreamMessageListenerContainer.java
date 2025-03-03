@@ -10,8 +10,6 @@ class DefaultStreamMessageListenerContainer implements StreamMessageListenerCont
 
     private static final ExecutorService MQ_CONSUMER_POOL = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    private boolean running = false;
-
     List<ListenerTask> subscriptions = new ArrayList<>();
 
     public void start() {
@@ -25,6 +23,12 @@ class DefaultStreamMessageListenerContainer implements StreamMessageListenerCont
     @Override
     public void register(ConsumerInfo consumerInfo, StreamListener streamListener) {
         this.doRegister(consumerInfo, streamListener);
+    }
+
+    @Override
+    public StreamMessageListenerContainer scan(String path) {
+        StreamConsumerRegistrar.register(this, path);
+        return this;
     }
 
     private void doRegister(ConsumerInfo consumerInfo, StreamListener streamListener) {

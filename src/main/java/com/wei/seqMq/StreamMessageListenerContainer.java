@@ -8,6 +8,8 @@ public interface StreamMessageListenerContainer {
 
     void register(ConsumerInfo consumerInfo, StreamListener streamListener);
 
+    StreamMessageListenerContainer scan(String path);
+
     void start();
 
     void receive(ConsumerInfo consumerInfo, StreamListener streamListener, boolean autoAck);

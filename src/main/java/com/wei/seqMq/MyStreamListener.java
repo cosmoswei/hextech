@@ -4,9 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @StreamConsumer(
-        groupName = "SeqMessageQueue",
-        streamName = "SeqGroup",
-        autoAck = true
+        streamName = "SeqMessageQueue",
+        groupName = "SeqGroup"
 )
 class MyStreamListener implements StreamListener<SeqMessage> {
 
