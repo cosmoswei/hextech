@@ -21,6 +21,9 @@ public class StreamConsumerRegistrar {
                     setAutoAckProperty(listener, annot.autoAck());
                     // 构建 ConsumerInfo
                     ConsumerInfo consumerInfo = new ConsumerInfo(annot.streamName(), annot.groupName());
+
+
+
                     // 注册到容器
                     if (annot.autoAck()) {
                         container.receiveAutoAck(consumerInfo, listener);

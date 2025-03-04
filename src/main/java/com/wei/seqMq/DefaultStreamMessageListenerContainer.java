@@ -12,7 +12,27 @@ class DefaultStreamMessageListenerContainer implements StreamMessageListenerCont
 
     List<ListenerTask> subscriptions = new ArrayList<>();
 
+    private boolean running = false;
+
+    @Override
     public void start() {
+        this.running = true;
+        for (ListenerTask subscription : subscriptions) {
+            if (subscription.isActive()) {
+                continue;
+            }
+            subscription.active();
+            MQ_CONSUMER_POOL.execute(subscription);
+        }
+    }
+
+    @Override
+    public void stop() {
+        this.running = false;
+        for (ListenerTask subscription : subscriptions) {
+            subscription.stop();
+        }
+        MQ_CONSUMER_POOL.shutdown();
     }
 
     @Override
@@ -41,6 +61,6 @@ class DefaultStreamMessageListenerContainer implements StreamMessageListenerCont
     }
 
     private boolean canRun() {
-        return true;
+        return running;
     }
 }

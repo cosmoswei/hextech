@@ -1,7 +1,8 @@
 package com.wei.seqMq;
 
 import com.wei.cappuccino.RedissonHelper;
-import org.redisson.api.PendingResult;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.RedissonShutdownException;
 import org.redisson.api.RStream;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.StreamMessageId;
@@ -10,81 +11,22 @@ import org.redisson.api.stream.StreamReadGroupArgs;
 import org.redisson.api.stream.TrimStrategy;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class SeqMessageQueue {
-
-    private static final Logger log = LoggerFactory.getLogger(SeqMessageQueue.class);
 
     private static RedissonClient redissonClient;
 
-
-    public void processPending(ConsumerInfo consumerInfo) {
-        // Get the stream object
-        RStream<String, String> stream = redissonClient.getStream(consumerInfo.getStreamName());
-
-        // Get the pending messages for a specific consumer group
-        PendingResult pendingResult = stream.getPendingInfo(consumerInfo.getGroupName());
-        // Retrieve the lowest and highest message IDs
-        StreamMessageId lowestId = pendingResult.getLowestId();
-        StreamMessageId highestId = pendingResult.getHighestId();
-        if (lowestId == null || highestId == null) {
-            return;
-        }
-        Map<StreamMessageId, Map<String, String>> range = stream.range(lowestId, highestId);
-        for (StreamMessageId streamMessageId : range.keySet()) {
-            Map<String, String> stringStringMap = range.get(streamMessageId);
-            log.info("{} value = {}", streamMessageId, stringStringMap);
-            acknowledgeEvent(consumerInfo, streamMessageId);
-        }
-    }
-
-    public static void main(String[] args) throws InterruptedException {
+    public void init(SeqMessageQueueConfig seqMessageQueueConfig) {
         Config config = new Config();
         config.setCodec(StringCodec.INSTANCE)
                 .useSingleServer()
-                .setAddress("redis://120.76.41.234:8866")
-                .setPassword("huangxuwei");
+                .setAddress(seqMessageQueueConfig.getRedisUri())
+                .setPassword(seqMessageQueueConfig.getRedisPassword());
         redissonClient = RedissonHelper.init(config);
-        SeqMessageQueue queue = new SeqMessageQueue();
-        String streamKey = "SeqMessageQueue";
-        String streamGroup = "SeqGroup";
-        String streamConsumer = "SeqConsumer";
-        ConsumerInfo consumerInfo = new ConsumerInfo();
-        consumerInfo.setStreamName(streamKey);
-        consumerInfo.setGroupName(streamGroup);
-        consumerInfo.setConsumerName(streamConsumer);
-        queue.createStreamAndConsumerGroup(streamKey, streamGroup);
-        ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-        map.put("key", "cosmoswei");
-        map.put("id", "18411100111");
-        map.put("age", "25");
-        map.put("name", "huangxuwei");
-        map.put("phone", "18175737312");
-        map.put("color", "red");
-        StreamMessageId streamId = queue.addEventToStream(streamKey, map);
-
-        Map<StreamMessageId, Map<String, String>> streamMessageIdMap = readEventsFromStream(consumerInfo);
-        for (StreamMessageId streamMessageId : streamMessageIdMap.keySet()) {
-            log.info("streamMessageId = {}, value = {}", streamMessageId, streamMessageIdMap.get(streamMessageId));
-            acknowledgeEvent(consumerInfo, streamMessageId);
-        }
-        queue.processPending(consumerInfo);
-
-
-        // 创建容器实例
-        StreamMessageListenerContainer streamMessageListenerContainer = StreamMessageListenerContainer.create().scan("com.wei.seqMq");
-//        MyStreamListener streamListener = new MyStreamListener();
-//        streamListener.setActAck(true);
-//        streamMessageListenerContainer.receiveAutoAck(consumerInfo, streamListener, true);
-        streamMessageListenerContainer.start();
-        Thread.sleep(60 * 1000);
-        queue.shutdown();
     }
 
     // 创建流和消费者组，如果它们还不存在
@@ -105,14 +47,18 @@ public class SeqMessageQueue {
     }
 
     // 添加事件到流
-    public StreamMessageId addEventToStream(String streamName, Map<String, String> event) {
+    public StreamMessageId addEventToStream(String streamName, Map<String, Object> event) {
         try {
-            RStream<String, String> stream = redissonClient.getStream(streamName);
+            RStream<String, Object> stream = redissonClient.getStream(streamName);
             return stream.add(StreamAddArgs.entries(event).trim(TrimStrategy.MAXLEN, 1000));
         } catch (Exception e) {
             log.error("Error adding event to stream", e);
             return null;
         }
+    }
+
+    public static RStream<String, String> getStream(ConsumerInfo consumerInfo) {
+        return redissonClient.getStream(consumerInfo.getStreamName());
     }
 
     // 读取事件
@@ -134,12 +80,13 @@ public class SeqMessageQueue {
             return stream.readGroup(consumerInfo.getGroupName(),
                     consumerInfo.getConsumerName(),
                     StreamReadGroupArgs.neverDelivered().timeout(ttl));
-        } catch (Exception e) {
-            log.error("Error reading events from stream", e);
-            return null;
+        } catch (RedissonShutdownException e) {
+            log.info("Redisson is shutdown msg = {}", e.getMessage());
+        } catch (Throwable e) {
+            log.error("listen throw exception cause = {}", e.getMessage(), e.getCause());
         }
+        return null;
     }
-
 
     // 确认事件处理完成
     public static void acknowledgeEvent(ConsumerInfo consumerInfo, StreamMessageId messageId) {
@@ -176,7 +123,8 @@ public class SeqMessageQueue {
     }
 
     // 允许自定义 StreamReadGroupArgs
-    public Map<StreamMessageId, Map<String, String>> readEventsFromStream(String streamName, String groupName, String consumerName, StreamReadGroupArgs readGroupArgs) {
+    public Map<StreamMessageId, Map<String, String>> readEventsFromStream(String streamName, String
+            groupName, String consumerName, StreamReadGroupArgs readGroupArgs) {
         try {
             RStream<String, String> stream = redissonClient.getStream(streamName);
             return stream.readGroup(groupName, consumerName, readGroupArgs);
@@ -187,9 +135,12 @@ public class SeqMessageQueue {
     }
 
     public void shutdown() {
-        redissonClient.shutdown();
+        try {
+            redissonClient.shutdown();
+        } catch (Throwable e) {
+            log.error("redis client stop err case = {}", e.getMessage());
+        }
     }
-
 }
 
 

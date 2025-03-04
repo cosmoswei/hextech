@@ -12,6 +12,8 @@ public interface StreamMessageListenerContainer {
 
     void start();
 
+    void stop();
+
     void receive(ConsumerInfo consumerInfo, StreamListener streamListener, boolean autoAck);
 
     default void receive(ConsumerInfo consumerInfo, StreamListener streamListener) {

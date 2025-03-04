@@ -1,5 +1,8 @@
-package com.wei.seqMq;
+package com.wei.mq;
 
+import com.wei.seqMq.SeqMessage;
+import com.wei.seqMq.StreamConsumer;
+import com.wei.seqMq.StreamListener;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -7,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
         streamName = "SeqMessageQueue",
         groupName = "SeqGroup"
 )
-class MyStreamListener implements StreamListener<SeqMessage> {
+public class MyStreamListener implements StreamListener<SeqMessage> {
 
     private boolean actAck = true;
 
