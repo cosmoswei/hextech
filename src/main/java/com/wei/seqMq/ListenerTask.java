@@ -1,5 +1,6 @@
 package com.wei.seqMq;
 
+import com.wei.seqMq.facade.ConsumerInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.RedissonShutdownException;
 import org.redisson.api.StreamMessageId;

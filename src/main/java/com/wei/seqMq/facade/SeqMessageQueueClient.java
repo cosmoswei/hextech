@@ -1,6 +1,7 @@
-package com.wei.seqMq;
+package com.wei.seqMq.facade;
 
-import com.wei.json.JsonUtil;
+import com.wei.seqMq.SeqMessageQueue;
+import com.wei.util.JsonUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.StreamMessageId;
@@ -31,5 +32,4 @@ public class SeqMessageQueueClient {
         StreamMessageId streamMessageId = seqMessageQueue.addEventToStream(consumerInfo.getStreamName(), stringObjectMap);
         return streamMessageId.toString();
     }
-
 }

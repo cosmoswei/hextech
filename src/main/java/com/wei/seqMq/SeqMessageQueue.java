@@ -1,6 +1,8 @@
 package com.wei.seqMq;
 
 import com.wei.cappuccino.RedissonHelper;
+import com.wei.seqMq.facade.ConsumerInfo;
+import com.wei.seqMq.facade.SeqMessageQueueConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.RedissonShutdownException;
 import org.redisson.api.RStream;

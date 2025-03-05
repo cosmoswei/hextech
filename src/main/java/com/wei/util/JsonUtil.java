@@ -1,4 +1,4 @@
-package com.wei.json;
+package com.wei.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

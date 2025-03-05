@@ -1,6 +1,9 @@
 package com.wei.seqMq;
 
 
+import com.wei.seqMq.facade.ConsumerInfo;
+import com.wei.seqMq.aop.StreamConsumerRegistrar;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;

@@ -1,5 +1,9 @@
-package com.wei.seqMq;
+package com.wei.seqMq.aop;
 
+import com.wei.seqMq.StreamListener;
+import com.wei.seqMq.StreamMessageListenerContainer;
+import com.wei.seqMq.facade.ConsumerInfo;
+import com.wei.util.LocalIPFinder;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Field;
@@ -20,9 +24,12 @@ public class StreamConsumerRegistrar {
                     // 设置 autoAck 属性
                     setAutoAckProperty(listener, annot.autoAck());
                     // 构建 ConsumerInfo
-                    ConsumerInfo consumerInfo = new ConsumerInfo(annot.streamName(), annot.groupName());
-
-
+                    String groupName = annot.groupName();
+                    String streamName = annot.streamName();
+                    if (annot.broadcast()) {
+                        groupName = streamName + LocalIPFinder.getLocalIp() + "1";
+                    }
+                    ConsumerInfo consumerInfo = new ConsumerInfo(streamName, groupName);
 
                     // 注册到容器
                     if (annot.autoAck()) {

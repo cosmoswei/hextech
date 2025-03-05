@@ -1,4 +1,4 @@
-package com.wei.seqMq;
+package com.wei.seqMq.facade;
 
 import lombok.Data;
 

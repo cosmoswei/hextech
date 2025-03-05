@@ -1,5 +1,7 @@
 package com.wei.seqMq;
 
+import com.wei.seqMq.facade.ConsumerInfo;
+
 public interface StreamMessageListenerContainer {
 
     static StreamMessageListenerContainer create() {

@@ -1,5 +1,7 @@
-package com.wei.seqMq;
+package com.wei.seqMq.facade;
 
+import com.wei.seqMq.SeqMessageQueue;
+import com.wei.seqMq.StreamMessageListenerContainer;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.PendingResult;
@@ -35,6 +37,10 @@ public class SeqMessageQueueServer {
     public static void processUnread(ConsumerInfo consumerInfo) {
         log.info("processUnread...");
         Map<StreamMessageId, Map<String, String>> streamMessageIdMap = SeqMessageQueue.readEventsFromStream(consumerInfo);
+
+        if (null == streamMessageIdMap) {
+            return;
+        }
         for (StreamMessageId streamMessageId : streamMessageIdMap.keySet()) {
             log.info("streamMessageId = {}, value = {}", streamMessageId, streamMessageIdMap.get(streamMessageId));
             SeqMessageQueue.acknowledgeEvent(consumerInfo, streamMessageId);
